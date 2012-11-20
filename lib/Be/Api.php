@@ -232,6 +232,76 @@ class Be_Api {
 
   } // getUserAppreciations
 
+
+  /**
+   * Retrieves a list of users the given user follows
+   *
+   * @param int|string $id_or_username : user
+   * @param bool       $assoc          : return objects will be converted to associative arrays
+   *
+   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   */
+  public function getUserFollows( $id_or_username, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/following';
+    $params   = array();
+
+    $results = $this->_getDecodedJson( $endpoint, $params, 'following', $assoc );
+
+    // IMPORTANT: Ensure this will always return an array
+    return ( empty( $results ) )
+           ? array()
+           : $results;
+  
+  } // getUserFollows
+
+  /**
+   * Retrieves a list of users who follow the provided user
+   *
+   * @param int|string $id_or_username : user
+   * @param bool       $assoc          : return objects will be converted to associative arrays
+   *
+   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   */
+  public function getUserFollowers( $id_or_username, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/followers';
+    $params   = array();
+
+    if ( !empty( $this->_access_token ) )
+      $params['access_token'] = $this->_access_token;
+
+    $results = $this->_getDecodedJson( $endpoint, $params, 'followers', $assoc );
+
+    // IMPORTANT: Ensure this will always return an array
+    return ( empty( $results ) )
+           ? array()
+           : $results;
+  
+  } // getUserFollowers
+
+  /**
+   * Retrieves a list of users in the given user's feedback circle
+   *
+   * @param int|string $id_or_username : user 
+   * @param bool       $assoc          : return objects will be converted to associative arrays
+   *
+   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   */
+   public function getUserFeedbackCircle( $id_or_username, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/feedback';
+    $params   = array();
+
+    $results  = $this->_getDecodedJson( $endpoint, $params, 'feedback_circlezz', $assoc );
+
+    // IMPORTANT: Ensure this will always return an array
+    return ( empty( $results ) )
+           ? array()
+           : $results;
+  
+  } // getUserFeedbackCircle
+
   /**
    * Retrieves a list of $id_or_username's works in progress
    *
