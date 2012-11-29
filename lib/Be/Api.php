@@ -469,7 +469,7 @@ class Be_Api {
    * 
    * @param  string  $wip_id      : WIP to comment on
    * @param  string  $revision_id : WIP revision to comment on
-   * @param  array   $tags        : WIP revision tags
+   * @param  string  $comment     : comment text
    * @param  boolean $assoc       : return objects will be converted to associative arrays
    * 
    * @return array                : stdClass objects or associative arrays, based on $assoc
