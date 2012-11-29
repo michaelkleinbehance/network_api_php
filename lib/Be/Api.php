@@ -232,21 +232,20 @@ class Be_Api {
 
   } // getUserAppreciations
 
-
   /**
    * Retrieves a list of users the given user follows
    *
-   * @param int|string $id_or_username : user
-   * @param bool       $assoc          : return objects will be converted to associative arrays
-   *
-   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   * @param  int|string $id_or_username : user
+   * @param  bool       $assoc          : return objects will be converted to associative arrays
+   * @param  array      $options        : search options
+   * 
+   * @return array                      : stdClass objects or associative arrays, based on $assoc
    */
-  public function getUserFollows( $id_or_username, $assoc = false ) {
+  public function getUserFollows( $id_or_username, $options = array(), $assoc = false ) {
 
     $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/following';
-    $params   = array();
 
-    $results = $this->_getDecodedJson( $endpoint, $params, 'following', $assoc );
+    $results = $this->_getDecodedJson( $endpoint, $options, 'following', $assoc );
 
     // IMPORTANT: Ensure this will always return an array
     return ( empty( $results ) )
@@ -258,20 +257,20 @@ class Be_Api {
   /**
    * Retrieves a list of users who follow the provided user
    *
-   * @param int|string $id_or_username : user
-   * @param bool       $assoc          : return objects will be converted to associative arrays
-   *
-   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   * @param  int|string $id_or_username : user
+   * @param  bool       $assoc          : return objects will be converted to associative arrays
+   * @param  array      $options        : search options
+   * 
+   * @return array                      : stdClass objects or associative arrays, based on $assoc
    */
-  public function getUserFollowers( $id_or_username, $assoc = false ) {
+  public function getUserFollowers( $id_or_username, $options = array(), $assoc = false ) {
 
     $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/followers';
-    $params   = array();
-
+    
     if ( !empty( $this->_access_token ) )
-      $params['access_token'] = $this->_access_token;
+      $options['access_token'] = $this->_access_token;
 
-    $results = $this->_getDecodedJson( $endpoint, $params, 'followers', $assoc );
+    $results = $this->_getDecodedJson( $endpoint, $options, 'followers', $assoc );
 
     // IMPORTANT: Ensure this will always return an array
     return ( empty( $results ) )
@@ -283,17 +282,17 @@ class Be_Api {
   /**
    * Retrieves a list of users in the given user's feedback circle
    *
-   * @param int|string $id_or_username : user 
-   * @param bool       $assoc          : return objects will be converted to associative arrays
-   *
-   * @return array                     : stdClass objects or associative arrays, based on $assoc
+   * @param  int|string $id_or_username : user 
+   * @param  bool       $assoc          : return objects will be converted to associative arrays
+   * @param  array      $options        : search options
+   * 
+   * @return array                      : stdClass objects or associative arrays, based on $assoc
    */
-   public function getUserFeedbackCircle( $id_or_username, $assoc = false ) {
+   public function getUserFeedbackCircle( $id_or_username, $options = array(), $assoc = false ) {
 
     $endpoint = self::ENDPOINT_USERS . '/' . $id_or_username . '/feedback';
-    $params   = array();
 
-    $results  = $this->_getDecodedJson( $endpoint, $params, 'feedback_circlezz', $assoc );
+    $results  = $this->_getDecodedJson( $endpoint, $options, 'feedback_circlezz', $assoc );
 
     // IMPORTANT: Ensure this will always return an array
     return ( empty( $results ) )
@@ -301,7 +300,6 @@ class Be_Api {
            : $results;
   
   } // getUserFeedbackCircle
-
   /**
    * Retrieves a list of $id_or_username's works in progress
    *
@@ -335,7 +333,7 @@ class Be_Api {
   */
   public function createUserWip( $image_path, $title, array $tags, $description = '', $assoc = false ) {
 
-    $endpoint               = self::ENDPOINT_WIPS;
+    $endpoint = self::ENDPOINT_WIPS;
     
     $query_params['access_token'] = $this->_access_token;
     
@@ -354,31 +352,40 @@ class Be_Api {
            : json_decode( $response, $assoc );
     
   } // createUserWip
-
+  
   /**
-   * Update WIP title
-   * 
-   * @param  string  $wip_id       : WIP to be updated
-   * @param  string  $title        : WIP title
-   * @param  boolean $assoc        : return objects will be converted to associative arrays
-   * 
-   * @return array                 : stdClass objects or associative arrays, based on $assoc
-   */
-  public function updateUserWipTitle( $wip_id, $title, $assoc = false ) {
+  * Create new Work in Progress ( WIP ) revision
+  * 
+  * @param  int             $wip_id      : wip id
+  * @param  string          $image_path  : full image path
+  * @param  string          $title       : title of WIP
+  * @param  array           $tags        : tags assoicated with wip revision
+  * @param  string          $description : description of wip revision
+  * @param  boolean         $assoc       : return objects will be converted to associative arrays
+  * 
+  * @return array                        : stdClass objects or associative arrays, based on $assoc
+  */
+  public function createUserWipRevision( $wip_id, $image_path, $title, array $tags, $description = '', $assoc = false ) {
 
-    $endpoint = self::ENDPOINT_WIPS . '/' . $wip_id ;
-
+    $endpoint = self::ENDPOINT_WIPS . '/' . $id;
+    
     $query_params['access_token'] = $this->_access_token;
+    
+    $post_body['tags']         = implode( '|', $tags );
+    $post_body['image']        = '@' . $image_path;
+    $post_body['title']        = $title;
+    $post_body['description']  = $description;
+    
 
-    $put_body['title']            = $title;
-   
-    $response = $this->_put( $endpoint, $query_params, $put_body );
+    $curl_params[ CURLOPT_HTTPHEADER ] = array( 'Content-Type: multipart/form-data' );
+
+    $response = $this->_post( $endpoint, $query_params, $post_body, $curl_params );
 
     return ( empty( $response ) )
            ? false
            : json_decode( $response, $assoc );
-
-  } //updateUserWipTitle
+    
+  } // createUserWipRevision
 
   /**
    * Update WIP description
@@ -404,7 +411,32 @@ class Be_Api {
            ? false
            : json_decode( $response, $assoc );
 
-  } //updateUserWipRevisionDescription
+  } // updateUserWipRevisionDescription
+
+  /**
+   * Update WIP title
+   * 
+   * @param  string  $wip_id       : WIP to be updated
+   * @param  string  $title        : WIP title
+   * @param  boolean $assoc        : return objects will be converted to associative arrays
+   * 
+   * @return array                 : stdClass objects or associative arrays, based on $assoc
+   */
+  public function updateUserWipTitle( $wip_id, $title, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_WIPS . '/' . $wip_id ;
+
+    $query_params['access_token'] = $this->_access_token;
+
+    $put_body['title']            = $title;
+   
+    $response = $this->_put( $endpoint, $query_params, $put_body );
+
+    return ( empty( $response ) )
+           ? false
+           : json_decode( $response, $assoc );
+
+  } // updateUserWipTitle
 
   /**
    * Update WIP revision tags
@@ -430,7 +462,32 @@ class Be_Api {
            ? false
            : json_decode( $response, $assoc );
 
-  } //updateUserWipRevisionTags
+  } // updateUserWipRevisionTags
+
+  /**
+   * Post WIP comment
+   * 
+   * @param  string  $wip_id      : WIP to comment on
+   * @param  string  $revision_id : WIP revision to comment on
+   * @param  array   $tags        : WIP revision tags
+   * @param  boolean $assoc       : return objects will be converted to associative arrays
+   * 
+   * @return array                : stdClass objects or associative arrays, based on $assoc
+   */
+  public function postWipComment( $wip_id, $revision_id, $comment, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_WIPS . '/' . $id . '/' . $revision_id . '/comments';
+
+    $query_params['access_token'] = $this->_access_token;
+    $body_params['comment']       = $comment;
+
+    $response = $this->_post( $endpoint, $query_params, $body_params );
+
+    return ( empty( $response ) )
+           ? false
+           : json_decode( $response, $assoc );
+  
+  } // postProjectComment
 
   /**
    * Delete WIP revision
@@ -453,7 +510,7 @@ class Be_Api {
            ? false
            : json_decode( $response, $assoc );
 
-  } //deleteUserWipRevision
+  } // deleteUserWipRevision
 
   /**
    * Delete WIP 
@@ -753,6 +810,30 @@ class Be_Api {
            : json_decode( $response, $assoc );
     
   } // appreciateProject
+
+  /**
+   * Post project comment
+   * 
+   * @param  int    $id      : project to post comment
+   * @param  string $comment : comment to post
+   * @param  bool   $assoc   : return objects will be converted to associative arrays
+   *
+   * @return array           : stdClass objects or associative arrays, based on $assoc
+   */
+  public function postProjectComment( $id, $comment, $assoc = false ) {
+
+    $endpoint = self::ENDPOINT_PROJECTS . '/' . $id . '/comments';
+
+    $query_params['access_token'] = $this->_access_token;
+    $body_params['comment']       = $comment;
+
+    $response = $this->_post( $endpoint, $query_params, $body_params );
+    
+    return ( empty( $response ) )
+           ? false
+           : json_decode( $response, $assoc );
+  
+  } // postProjectComment
 
   /**
    * Follow collection
